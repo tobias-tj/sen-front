@@ -2,15 +2,19 @@ import axios from "axios";
 
 export const BASE_URL = "http://127.0.0.1:8000/api";
 
+export interface User {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: number;
+}
+
 export interface LoginResponse {
   tokens: {
     access: string;
     refresh: string;
   };
-  user: {
-    nombre: string;
-    email: string;
-  };
+  user: User;
 }
 
 export const AuthAPI = {

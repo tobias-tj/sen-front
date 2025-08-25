@@ -25,17 +25,26 @@ import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
-export function SidebarLayout({ children }: { children: ReactNode }) {
+export function SidebarLayout({
+  children,
+  setToken,
+}: {
+  children: ReactNode;
+  setToken: (t: string | null) => void;
+}) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("refresh_token");
+    sessionStorage.removeItem("user");
+
+    setToken(null);
     navigate("/login", { replace: true });
   };
 
-  // Obtener usuario del localStorage
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  // Obtener usuario del sessionStorage
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
   const isAdmin = user?.rol === 1;
 
   // Items comunes

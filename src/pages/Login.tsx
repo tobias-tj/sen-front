@@ -1,8 +1,9 @@
-
-import type React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { AuthAPI } from "../api/auth";
 import {
   Card,
@@ -18,23 +19,40 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Eye, EyeOff, Lock, Mail, LogIn, AlertTriangle } from "lucide-react";
 import AuthLayout from "@/components/layouts/AuthLayout";
 
-export default function Login() {
+// ✅ Validación con zod
+const loginSchema = z.object({
+  email: z.string().email("Correo inválido"),
+  password: z.string().min(6, "Mínimo 6 caracteres"),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+
+export default function Login({ setToken }: { setToken: (t: string) => void }) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginForm) => {
     setError("");
     setIsLoading(true);
 
     try {
-      const data = await AuthAPI.login(email, password);
-      localStorage.setItem("access_token", data.tokens.access);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      const res = await AuthAPI.login(data.email, data.password);
+
+      sessionStorage.setItem("access_token", res.tokens.access);
+      sessionStorage.setItem("refresh_token", res.tokens.refresh);
+      sessionStorage.setItem("user", JSON.stringify(res.user));
+
+      setToken(res.tokens.access);
       navigate("/home");
     } catch (err: any) {
       setError(err.message);
@@ -70,7 +88,7 @@ export default function Login() {
 
           <CardContent className="space-y-6">
             <motion.form
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmit(onSubmit)}
               className="space-y-5"
               initial="hidden"
               animate="visible"
@@ -79,7 +97,7 @@ export default function Login() {
                 visible: { transition: { staggerChildren: 0.1 } },
               }}
             >
-              {/* Email field */}
+              {/* Email */}
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 10 },
@@ -87,27 +105,23 @@ export default function Login() {
                 }}
                 className="space-y-2"
               >
-                <Label
-                  htmlFor="email"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Correo Electrónico
-                </Label>
+                <Label htmlFor="email">Correo Electrónico</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-4 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="tu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12 bg-input border-border focus:border-primary focus:ring-primary/20"
-                    required
+                    {...register("email")}
+                    className="pl-10 h-12"
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email.message}</p>
+                )}
               </motion.div>
 
-              {/* Password field */}
+              {/* Password */}
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 10 },
@@ -115,27 +129,20 @@ export default function Login() {
                 }}
                 className="space-y-2"
               >
-                <Label
-                  htmlFor="password"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Contraseña
-                </Label>
+                <Label htmlFor="password">Contraseña</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-4 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 bg-input border-border focus:border-primary focus:ring-primary/20"
-                    required
+                    {...register("password")}
+                    className="pl-10 pr-10 h-12"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-4 transform -translate-y-1/2 text-muted-foreground"
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -144,23 +151,23 @@ export default function Login() {
                     )}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="text-sm text-red-500">
+                    {errors.password.message}
+                  </p>
+                )}
               </motion.div>
 
-              {/* Submit button */}
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: 10 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
+              {/* Botón */}
+              <motion.div>
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full h-12"
                 >
                   {isLoading ? (
                     <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       <span>Iniciando sesión...</span>
                     </div>
                   ) : (
@@ -173,26 +180,13 @@ export default function Login() {
               </motion.div>
             </motion.form>
 
-            {/* Error alert */}
+            {/* Error */}
             {error && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Alert
-                  variant="destructive"
-                  className="border-destructive/20 bg-destructive/5"
-                >
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle className="font-medium">
-                    Error de Autenticación
-                  </AlertTitle>
-                  <AlertDescription className="text-sm">
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              </motion.div>
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Error de Autenticación</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
           </CardContent>
         </Card>
