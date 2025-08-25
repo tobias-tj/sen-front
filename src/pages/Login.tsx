@@ -54,8 +54,12 @@ export default function Login({ setToken }: { setToken: (t: string) => void }) {
 
       setToken(res.tokens.access);
       navigate("/home");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Ocurrió un error inesperado.");
+      }
     } finally {
       setIsLoading(false);
     }

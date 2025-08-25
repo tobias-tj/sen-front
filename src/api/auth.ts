@@ -25,8 +25,11 @@ export const AuthAPI = {
         password,
       });
       return res.data;
-    } catch (err: any) {
-      throw new Error(err.response?.data?.error || "Error al iniciar sesión");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.error) {
+        throw new Error(err.response.data.error);
+      }
+      throw new Error("Error al iniciar sesión");
     }
   },
 };

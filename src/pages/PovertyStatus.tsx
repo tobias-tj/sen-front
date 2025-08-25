@@ -10,13 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import {
-  AlertTriangle,
-  BarChart3,
-  HandHelpingIcon,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { BarChart3, HandHelpingIcon, TrendingUp, Users } from "lucide-react";
 
 interface PovertyData {
   department: string;
@@ -119,7 +113,7 @@ export default function PovertyStatus({ onViewDetails }: PovertyStatusProps) {
               },
             }}
           >
-            {povertyData.map((item, index) => (
+            {povertyData.map((item) => (
               <motion.div
                 key={item.department}
                 variants={{

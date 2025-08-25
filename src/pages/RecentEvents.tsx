@@ -11,14 +11,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  AlertTriangle,
   Flame,
   Users,
   CheckCircle,
   Clock,
   MapPin,
   User,
-  Flashlight,
   Zap,
   BellDot,
 } from "lucide-react";
@@ -112,6 +110,7 @@ export default function RecentEvents({
   recentReports,
 }: {
   isLoading: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recentReports: any[];
 }) {
   return (

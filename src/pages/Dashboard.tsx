@@ -22,7 +22,6 @@ import {
 import RecentEvents from "./RecentEvents";
 import PovertyStatus from "./PovertyStatus";
 import { motion } from "framer-motion";
-import SimpleModal from "./SimpleModal";
 
 interface StatCardProps {
   title: string;

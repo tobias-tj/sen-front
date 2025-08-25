@@ -99,8 +99,7 @@ const mockEvents: MapEvent[] = [
 ];
 
 function createCustomIcon(type: string, severity: string) {
-  if (typeof window === "undefined") return null;
-
+  // Always return a valid DivIcon, even on SSR
   let emoji = "";
   let color = "";
 
@@ -140,6 +139,10 @@ function createCustomIcon(type: string, severity: string) {
           : severity === "medium"
           ? "#22c55e"
           : "#4ade80";
+      break;
+    case "user":
+      emoji = "🧑";
+      color = "#0ea5e9";
       break;
     default:
       emoji = "📍";
